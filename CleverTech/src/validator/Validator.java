@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class Validator {
 	public static void main(String[] args) {
-		String aaa = new String("1_100");
+		String aaa = new String("1-10");
 		System.out.println(finalValidation(aaa));
 	}
 	private static boolean firstValidation(String text) {

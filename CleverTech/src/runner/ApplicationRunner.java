@@ -28,8 +28,8 @@ public class ApplicationRunner {
 					}//case 1
 					case "2" : {
 						Receipt generatedReceipt = generateReceipt();
-						outputReceipt(generatedReceipt);
-						receiptRelatedOptions(generatedReceipt);
+						String formedReceipt = outputReceipt(generatedReceipt);
+						saveOrNotChoise(formedReceipt);
 						break;
 					}//case 2
 					case "3" : {
@@ -40,8 +40,8 @@ public class ApplicationRunner {
 						} else {
 							try {
 								Receipt generatedReceipt = generateReceipt(argsValueContainer[0]);
-								outputReceipt(generatedReceipt);
-								receiptRelatedOptions(generatedReceipt);
+								String formedReceipt = outputReceipt(generatedReceipt);
+								saveOrNotChoise(formedReceipt);
 							} catch (NullPointerException e) {
 								System.out.println("No predifine information was given!");
 							} finally {
@@ -61,10 +61,9 @@ public class ApplicationRunner {
 	}//main
 		
 	private static void saveReceipt(String generatedReceipt) {
-        try(FileOutputStream fos=new FileOutputStream("FormedReceipt//Receipt.txt");
-            PrintStream printStream = new PrintStream(fos)) {
+        try(PrintStream printStream = new PrintStream("Receipt.txt", "UTF-8")) {
             printStream.println(generatedReceipt);
-            System.out.println("Receipt was succassfully saved in -FormedReceipt- folder");
+            System.out.println("Receipt was succassfully saved!");
         }
         catch(IOException ex){
             System.out.println(ex.getMessage());
@@ -150,7 +149,9 @@ public class ApplicationRunner {
 			
 		receipt = separator + "\n" + header + "\n" + separator + "\n" + 
 			      description + "\n" + body + separator + "\n" + footer;
+
 		System.out.println(receipt);
+
 		return receipt;
 	}//method
 	
@@ -230,12 +231,12 @@ public class ApplicationRunner {
 				+ "4. Exit");
 	}//method
 	
-	private static void receiptRelatedOptions(Receipt generatedReceipt) {
+	private static void saveOrNotChoise(String generatedReceipt) {
 		System.out.println("Do you want to save Receipt? Y/N");
 		String input = scanner.nextLine();
 		switch (input) {
 			case "Y": {
-				saveReceipt(outputReceipt(generatedReceipt));
+				saveReceipt(generatedReceipt);
 				showUserAvaibleOptions();
 				break;
 			}
