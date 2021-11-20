@@ -1,79 +1,68 @@
 package runner;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Scanner;
-
-import javax.sound.midi.Soundbank;
-
 import bonuscards.BonusCards;
 import database.Products;
 import receipt.Receipt;
 
 public class ApplicationRunner {
 	static Scanner scanner = new Scanner(System.in);
-	
+	static String[] argsValueContainer = null;
 	public static void main(String[] args) {
+		argsValueContainer = args;
 		System.out.println("Hello! Welcome to the self-service checkout. Please select one of the avaible numbers below:");
 			do {
-				outer: {
-					showOptions();
-					//Scanner scanner = new Scanner(System.in);
-					String input = scanner.nextLine();
-					switch (input) {
-						case "1" : {
-							showListOfProducts();
-							System.out.println("Do you want to continue? Y/N");
-							input = scanner.nextLine();
-							switch (input) {
-								case "Y": {
-									break outer;
-								}
-								case "N": {
-									endOfShoping();
-								}
-								default: {
-									System.out.println("Wrong input. Please, try again");
-								}
-							}
+				showStoreAvaibleOptions();
+				String input = scanner.nextLine();
+				switch (input) {
+					case "1" : {
+						showListOfProducts();
+						showUserAvaibleOptions();
+						break;
+					}//case 1
+					case "2" : {
+						Receipt generatedReceipt = generateReceipt();
+						outputReceipt(generatedReceipt);
+						receiptRelatedOptions(generatedReceipt);
+						break;
+					}//case 2
+					case "3" : {
+						if (args.length == 0) {
+							System.out.println("User predifine information wasn't given!");
+							showUserAvaibleOptions();
 							break;
-						}
-						case "2" : {
-							Receipt generatedReceipt = generateReceipt();
+						} else {
+							Receipt generatedReceipt = generateReceipt(commandLineParametersParser(args));
 							outputReceipt(generatedReceipt);
-							System.out.println("Do you want to save Receipt? Y/N");
-							input = scanner.nextLine();
-							switch (input) {
-								case "Y": {
-									saveReceipt(outputReceipt(generatedReceipt));
-								}
-								case "N": {
-									endOfShoping();
-								}
-								default: {
-									System.out.println("Wrong input. Please, try again");
-								}
-								break;
-							}//inner switch
-						}//case 2
-						case "3" : {
-							endOfShoping();
+							receiptRelatedOptions(generatedReceipt);
 						}
-						default : {
-							System.out.println("You entered invalid number. Please, try again");
-						}
-					}
-				}//outer
-			} while (true);
+						break;
+					}//case3
+					case "4" : {
+						endOfShoping();
+					}//case4
+					default : {
+						System.out.println("You entered invalid number. Please, try again");
+					}//default
+				}
+			} while (true);	
 	}//main
+	
+	public static String commandLineParametersParser(String[] args) {
+		String data = null;
+		if (args.length > 2) {
+			System.out.println("User predifine information was given but format is inccorect!");
+			showUserAvaibleOptions();
+		} else {
+			data = args[0];
+		}
+		return data;
+	}
 	
 	private static void saveReceipt(String generatedReceipt) {
         try(FileOutputStream fos=new FileOutputStream("FormedReceipt//Receipt.txt");
@@ -87,7 +76,7 @@ public class ApplicationRunner {
 	}//method
 
 	private static void showListOfProducts() {
-		System.out.println("List of avaible products:\n");
+		System.out.println("List of avaible products:");
 		for (Products itterator: Products.values()) {
 				if (itterator.isStock()) {
 					System.out.println(itterator.ordinal() + ". " + itterator.toString() + " - " + itterator.getPrice() + "$" + "  " + "Stock item!");
@@ -95,12 +84,6 @@ public class ApplicationRunner {
 					System.out.println(itterator.ordinal() + ". " + itterator.toString() + " - " + itterator.getPrice() + "$");
 				}
 		}
-	}//method
-	
-	private static void showOptions() {
-		System.out.println("1. Print list of all products\n"
-				+ "2. Generate purchase receipt\n"
-				+ "3. Exit");
 	}//method
 	
 	private static void endOfShoping() {
@@ -117,6 +100,18 @@ public class ApplicationRunner {
 				+ "Please, form your Receipt:");
 		String customerInput = scanner.nextLine();
 		String [] separatedParts = customerInput.split("_");
+		Receipt receipt = new Receipt();
+		for (int i = 0; i < separatedParts.length; i++) {
+			receipt.setProducts(separatedParts[i].charAt(0) + "", Products.returnProductbyId(separatedParts[i].charAt(0) + ""));
+			receipt.setQuantity(separatedParts[i].charAt(0) + "", separatedParts[i].charAt(separatedParts[i].length() - 1) + "");
+			receipt.setPrice(separatedParts[i].charAt(0) + "");
+			receipt.setTotalPrice(separatedParts[i].charAt(0) + "");
+		}
+		return receipt;
+	}//method
+	
+	private static Receipt generateReceipt(String commandLineData) {
+		String [] separatedParts = commandLineData.split("_");
 		Receipt receipt = new Receipt();
 		for (int i = 0; i < separatedParts.length; i++) {
 			receipt.setProducts(separatedParts[i].charAt(0) + "", Products.returnProductbyId(separatedParts[i].charAt(0) + ""));
@@ -158,10 +153,10 @@ public class ApplicationRunner {
 			
 		String 	footer =  bonusCardInfluence(generatedReceipt);
 			
-			receipt = separator + "\n" + header + "\n" + separator + "\n" + 
-				      description + "\n" + body + separator + "\n" + footer;
-			System.out.println(receipt);
-			return receipt;
+		receipt = separator + "\n" + header + "\n" + separator + "\n" + 
+			      description + "\n" + body + separator + "\n" + footer;
+		System.out.println(receipt);
+		return receipt;
 	}//method
 	
 	private static String bonusCardInfluence(Receipt receipt) {
@@ -174,29 +169,88 @@ public class ApplicationRunner {
 				sumOfAllProducts += receipt.getTotalPrice(i);
 			}
 		}
-		System.out.println("Do you have bonus card? Y/N");
+		/*Блок для обработки командной строки*/
+		if (argsValueContainer.length == 2) {
+			int DiscountValue = BonusCards.getDiscountValue(argsValueContainer[1]);
+			footer = String.format("Intermediate amount:      $%d\n"
+        			 			 + "Discount:            	  %d%%\n"
+        			 			 + "TOTAL:            	  $%d", sumOfAllProducts, DiscountValue, sumOfAllProducts -
+        			 (DiscountValue * sumOfAllProducts)/100);
+		} else { 
+			if (argsValueContainer.length == 1) {
+				footer = String.format("Intermediate amount:      $%d\n"
+			 						 + "Discount:            	  NO\n"
+			 			             + "TOTAL:            	  $%d", sumOfAllProducts, sumOfAllProducts);
+			} else {
+				System.out.println("Do you have bonus card? Y/N");
+				String input = scanner.nextLine();
+				switch (input) {
+					case "Y": {
+						System.out.println("Please, insert ID of your bonus card");
+						String inutV2 = scanner.nextLine();
+						int DiscountValue = BonusCards.getDiscountValue(inutV2);
+						footer = String.format("Intermediate amount:      $%d\n"
+					             			 + "Discount:            	  %d%%\n"
+					             			 + "TOTAL:            	  $%d", sumOfAllProducts, DiscountValue, sumOfAllProducts -
+					             			 (DiscountValue * sumOfAllProducts)/100);
+						break;	
+					}
+					case "N": {
+						footer = String.format("Intermediate amount:      $%d\n"
+			        			 			+ "Discount:            	  NO\n"
+			        			 			+ "TOTAL:            	  $%d", sumOfAllProducts, sumOfAllProducts);
+						break;
+					}
+					default: {
+						System.out.println("Wrong input. Please, try again");
+					}
+				}//switch
+			}//inner else
+		}//outer else
+		return footer;
+	}//method
+	
+	private static void showUserAvaibleOptions() {
+		do {
+			System.out.println("Do you want to continue? Y/N");
+			String input = scanner.nextLine();
+			switch (input) {
+				case "Y": {
+					return;
+				}
+				case "N": {
+					endOfShoping();
+				}
+				default: {
+					System.out.println("Wrong input. Please, try again");
+				}
+			}
+		} while (true);
+	}//method
+	
+	private static void showStoreAvaibleOptions() {
+		System.out.println("1. Print list of all products\n"
+				+ "2. Generate purchase receipt\n"
+				+ "3. Generate  purchase receipt from userpredefined input\n"
+				+ "4. Exit");
+	}//method
+	
+	private static void receiptRelatedOptions(Receipt generatedReceipt) {
+		System.out.println("Do you want to save Receipt? Y/N");
 		String input = scanner.nextLine();
 		switch (input) {
 			case "Y": {
-				System.out.println("Please, insert ID of your bonus card");
-				String inutV2 = scanner.nextLine();
-				int DiscountValue = BonusCards.getDiscountValue(inutV2);
-				footer = String.format("Intermediate amount:      $%d\n"
-			             			 + "Discount:            	  %d%%\n"
-			             			 + "TOTAL:            	  $%d", sumOfAllProducts, DiscountValue, sumOfAllProducts -
-			             			 (DiscountValue * sumOfAllProducts)/100);
-				break;	
+				saveReceipt(outputReceipt(generatedReceipt));
+				showUserAvaibleOptions();
+				break;
 			}
 			case "N": {
-				footer = String.format("Intermediate amount:      $%d\n"
-            			 			+ "Discount:            	  NO\n"
-            			 			+ "TOTAL:            	  $%d", sumOfAllProducts, sumOfAllProducts);
-				break;
+				endOfShoping();
 			}
 			default: {
 				System.out.println("Wrong input. Please, try again");
 			}
-		}//switch
-		return footer;
-	}//method
+		}
+	}
+	
 }//class
