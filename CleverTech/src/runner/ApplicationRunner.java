@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 import java.util.Scanner;
+import validator.*;
 import bonuscards.BonusCards;
 import database.Products;
 import receipt.Receipt;
@@ -37,9 +39,15 @@ public class ApplicationRunner {
 							showUserAvaibleOptions();
 							break;
 						} else {
-							Receipt generatedReceipt = generateReceipt(commandLineParametersParser(args));
-							outputReceipt(generatedReceipt);
-							receiptRelatedOptions(generatedReceipt);
+							try {
+								Receipt generatedReceipt = generateReceipt(argsValueContainer[0]);
+								outputReceipt(generatedReceipt);
+								receiptRelatedOptions(generatedReceipt);
+							} catch (NullPointerException e) {
+								System.out.println("No predifine information was given!");
+							} finally {
+								showUserAvaibleOptions();
+							}
 						}
 						break;
 					}//case3
@@ -52,18 +60,7 @@ public class ApplicationRunner {
 				}
 			} while (true);	
 	}//main
-	
-	public static String commandLineParametersParser(String[] args) {
-		String data = null;
-		if (args.length > 2) {
-			System.out.println("User predifine information was given but format is inccorect!");
-			showUserAvaibleOptions();
-		} else {
-			data = args[0];
-		}
-		return data;
-	}
-	
+		
 	private static void saveReceipt(String generatedReceipt) {
         try(FileOutputStream fos=new FileOutputStream("FormedReceipt//Receipt.txt");
             PrintStream printStream = new PrintStream(fos)) {
@@ -92,13 +89,7 @@ public class ApplicationRunner {
 	}//method
 	
 	private static Receipt generateReceipt() {
-		System.out.println("Please, fill out the form according to the rule below:\n"
-				+ "in-quantity_in-quantity_etc\n"
-				+ "id - identification number according to list of avaible products\n"
-				+ "quantity - number of particular product that you want to buy\n"
-				+ "_ - separator which allow program to processing your request\n\n"
-				+ "Please, form your Receipt:");
-		String customerInput = scanner.nextLine();
+		String customerInput = userInputForReceiptValidation();
 		String [] separatedParts = customerInput.split("_");
 		Receipt receipt = new Receipt();
 		for (int i = 0; i < separatedParts.length; i++) {
@@ -111,6 +102,11 @@ public class ApplicationRunner {
 	}//method
 	
 	private static Receipt generateReceipt(String commandLineData) {
+		if (!Validator.finalValidation(commandLineData)) {
+			System.out.println("User predifine information was given incorect!");
+			showUserAvaibleOptions();
+			ApplicationRunner.main(null);
+		}
 		String [] separatedParts = commandLineData.split("_");
 		Receipt receipt = new Receipt();
 		for (int i = 0; i < separatedParts.length; i++) {
@@ -251,6 +247,31 @@ public class ApplicationRunner {
 				System.out.println("Wrong input. Please, try again");
 			}
 		}
-	}
+	}//method
+	
+	private static void generateReceiptDescription() {
+		System.out.println("Please, fill out the form according to the rule below:\n"
+				+ "in-quantity_in-quantity_etc\n"
+				+ "id - identification number according to list of avaible products\n"
+				+ "quantity - number of particular product that you want to buy\n"
+				+ "_ - separator which allow program to processing your request\n\n"
+				+ "Please, form your Receipt:");
+	}//method
+	
+	private static String userInputForReceiptValidation() {
+		StringBuilder customerInput = new StringBuilder();
+		do {
+			generateReceiptDescription();
+			customerInput.append (scanner.nextLine());
+			if (!Validator.finalValidation(customerInput.toString())) {
+				System.out.println("Wrong input!");
+				showUserAvaibleOptions();
+				customerInput.delete(0, customerInput.length());
+			} else {
+				break;
+			}
+		} while (true);
+		return customerInput.toString();
+	}//method
 	
 }//class
