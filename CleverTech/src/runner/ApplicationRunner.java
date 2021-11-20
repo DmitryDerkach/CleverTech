@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Objects;
 import java.util.Scanner;
 import validator.*;
 import bonuscards.BonusCards;
@@ -94,7 +93,7 @@ public class ApplicationRunner {
 		Receipt receipt = new Receipt();
 		for (int i = 0; i < separatedParts.length; i++) {
 			receipt.setProducts(separatedParts[i].charAt(0) + "", Products.returnProductbyId(separatedParts[i].charAt(0) + ""));
-			receipt.setQuantity(separatedParts[i].charAt(0) + "", separatedParts[i].charAt(separatedParts[i].length() - 1) + "");
+			receipt.setQuantity(separatedParts[i].charAt(0) + "", separatedParts[i].substring(2, separatedParts[i].length()));
 			receipt.setPrice(separatedParts[i].charAt(0) + "");
 			receipt.setTotalPrice(separatedParts[i].charAt(0) + "");
 		}
@@ -111,7 +110,7 @@ public class ApplicationRunner {
 		Receipt receipt = new Receipt();
 		for (int i = 0; i < separatedParts.length; i++) {
 			receipt.setProducts(separatedParts[i].charAt(0) + "", Products.returnProductbyId(separatedParts[i].charAt(0) + ""));
-			receipt.setQuantity(separatedParts[i].charAt(0) + "", separatedParts[i].charAt(separatedParts[i].length() - 1) + "");
+			receipt.setQuantity(separatedParts[i].charAt(0) + "", separatedParts[i].substring(2, separatedParts[i].length()));
 			receipt.setPrice(separatedParts[i].charAt(0) + "");
 			receipt.setTotalPrice(separatedParts[i].charAt(0) + "");
 		}
