@@ -166,6 +166,9 @@ public class ApplicationRunner {
 		}
 		/*Блок для обработки командной строки*/
 		if (argsValueContainer.length == 2) {
+			if(!bonusCardValidation(argsValueContainer[1])) {
+				System.out.println("Predifined information about card was given inccor");
+			}
 			int DiscountValue = BonusCards.getDiscountValue(argsValueContainer[1]);
 			footer = String.format("Intermediate amount:      $%d\n"
         			 			 + "Discount:            	  %d%%\n"
@@ -181,9 +184,19 @@ public class ApplicationRunner {
 				String input = scanner.nextLine();
 				switch (input) {
 					case "Y": {
-						System.out.println("Please, insert ID of your bonus card");
-						String inutV2 = scanner.nextLine();
-						int DiscountValue = BonusCards.getDiscountValue(inutV2);
+						StringBuilder customerInput = new StringBuilder();
+						do {
+							System.out.println("Please, insert ID of your bonus card");
+							customerInput.append (scanner.nextLine());
+							if (!bonusCardValidation(customerInput.toString())) {
+								System.out.println("This card does not exist!");
+								showUserAvaibleOptions();
+								customerInput.delete(0, customerInput.length());
+							} else {
+								break;
+							}
+						} while(true);
+						int DiscountValue = BonusCards.getDiscountValue(customerInput.toString());
 						footer = String.format("Intermediate amount:      $%d\n"
 					             			 + "Discount:            	  %d%%\n"
 					             			 + "TOTAL:            	  $%d", sumOfAllProducts, DiscountValue, sumOfAllProducts -
@@ -271,6 +284,22 @@ public class ApplicationRunner {
 			}
 		} while (true);
 		return customerInput.toString();
+	}//method
+	
+	private static boolean bonusCardValidation(String cardNumber) {
+		boolean cardValidation = false;
+		BonusCards [] arrayOfCards = BonusCards.values();
+		for (int i = 0; i < BonusCards.values().length; i++) {
+			try {
+				if (Integer.valueOf(cardNumber) == arrayOfCards[i].getUniqueNum()) {
+					cardValidation = true;
+					break;
+				}
+			} catch (Exception e) {
+				break;
+			}
+		}//for
+		return cardValidation;	
 	}//method
 	
 }//class
