@@ -18,8 +18,8 @@ public class ApplicationRunner {
 		System.out.println("Hello! Welcome to the self-service checkout. Please select one of the avaible numbers below:");
 			do {
 				showStoreAvaibleOptions();
-				String input = scanner.nextLine();
-				switch (input) {
+				String userMainInput = scanner.nextLine();
+				switch (userMainInput) {
 					case "1" : {
 						showListOfProducts();
 						showUserAvaibleOptions();
@@ -27,7 +27,7 @@ public class ApplicationRunner {
 					}//case 1
 					case "2" : {
 						Receipt generatedReceipt = generateReceipt();
-						String formedReceipt = outputReceipt(generatedReceipt);
+						String formedReceipt = outputReceipt(generatedReceipt, userMainInput);
 						saveOrNotChoise(formedReceipt);
 						break;
 					}//case 2
@@ -39,13 +39,12 @@ public class ApplicationRunner {
 						} else {
 							try {
 								Receipt generatedReceipt = generateReceipt(argsValueContainer[0]);
-								String formedReceipt = outputReceipt(generatedReceipt);
+								String formedReceipt = outputReceipt(generatedReceipt, userMainInput);
 								saveOrNotChoise(formedReceipt);
 							} catch (NullPointerException e) {
 								System.out.println("No predifine information was given!");
-							} finally {
 								showUserAvaibleOptions();
-							}
+							} 
 						}
 						break;
 					}//case3
@@ -53,7 +52,7 @@ public class ApplicationRunner {
 						endOfShoping();
 					}//case4
 					default : {
-						System.out.println("You entered invalid number. Please, try again");
+						System.out.println("Input is invalid. Please, try again");
 					}//default
 				}
 			} while (true);	
@@ -115,7 +114,7 @@ public class ApplicationRunner {
 		return receipt;
 	}//method
 	
-	private static String outputReceipt(Receipt generatedReceipt) {
+	private static String outputReceipt(Receipt generatedReceipt, String userInput) {
 		String receipt = null;
 		
 		String separator = "-------------------------------";
@@ -144,7 +143,7 @@ public class ApplicationRunner {
 				}
 			}
 			
-		String 	footer =  bonusCardInfluence(generatedReceipt);
+		String 	footer =  bonusCardInfluence(generatedReceipt, userInput);
 			
 		receipt = separator + "\n" + header + "\n" + separator + "\n" + 
 			      description + "\n" + body + separator + "\n" + footer;
@@ -154,7 +153,7 @@ public class ApplicationRunner {
 		return receipt;
 	}//method
 	
-	private static String bonusCardInfluence(Receipt receipt) {
+	private static String bonusCardInfluence(Receipt receipt, String userInput) {
 		String footer = null;
 		int sumOfAllProducts = 0;
 		for (int i = 0; i < Products.values().length; i++) {
@@ -165,9 +164,14 @@ public class ApplicationRunner {
 			}
 		}
 		/*Блок для обработки командной строки*/
-		if (argsValueContainer.length == 2) {
+	outer: {if (argsValueContainer.length == 2 && Integer.valueOf(userInput) == 3) {
 			if(!bonusCardValidation(argsValueContainer[1])) {
-				System.out.println("Predifined information about card was given inccor");
+				System.out.println("Predifined information about card was given inccorrect! You can continue, but bonus card won't be aplied!");
+				showUserAvaibleOptions();
+				footer = String.format("Intermediate amount:      $%d\n"
+									 + "Discount:            	  NO\n"
+									 + "TOTAL:            	  $%d", sumOfAllProducts, sumOfAllProducts);
+				break outer;
 			}
 			int DiscountValue = BonusCards.getDiscountValue(argsValueContainer[1]);
 			footer = String.format("Intermediate amount:      $%d\n"
@@ -175,7 +179,7 @@ public class ApplicationRunner {
         			 			 + "TOTAL:            	  $%d", sumOfAllProducts, DiscountValue, sumOfAllProducts -
         			 (DiscountValue * sumOfAllProducts)/100);
 		} else { 
-			if (argsValueContainer.length == 1) {
+			if (argsValueContainer.length == 1 && Integer.valueOf(userInput) == 3) {
 				footer = String.format("Intermediate amount:      $%d\n"
 			 						 + "Discount:            	  NO\n"
 			 			             + "TOTAL:            	  $%d", sumOfAllProducts, sumOfAllProducts);
@@ -215,6 +219,7 @@ public class ApplicationRunner {
 				}//switch
 			}//inner else
 		}//outer else
+	}//outer
 		return footer;
 	}//method
 	
